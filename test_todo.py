@@ -17,7 +17,20 @@ def test_add_creates_todo():
     todos = todo.load()
     assert len(todos) == 1
     assert todos[0]["title"] == "Buy milk"
+    assert todos[0]["priority"] == "medium"
     assert todos[0]["done"] is False
+
+
+def test_add_with_priority():
+    todo.add("Urgent task", priority="high")
+    todos = todo.load()
+    assert todos[0]["priority"] == "high"
+
+
+def test_add_invalid_priority(capsys):
+    todo.add("Bad task", priority="urgent")
+    assert "Priority must be one of" in capsys.readouterr().out
+    assert todo.load() == []
 
 
 def test_list_empty(capsys):
