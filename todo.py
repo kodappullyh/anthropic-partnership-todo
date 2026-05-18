@@ -18,11 +18,17 @@ def save(todos: list[dict]) -> None:
     TODOS_FILE.write_text(json.dumps(todos, indent=2))
 
 
-def add(title: str) -> None:
+PRIORITIES = {"low", "medium", "high"}
+
+
+def add(title: str, priority: str = "medium") -> None:
+    if priority not in PRIORITIES:
+        print(f"Priority must be one of: {', '.join(sorted(PRIORITIES))}")
+        return
     todos = load()
-    todos.append({"id": len(todos) + 1, "title": title, "done": False})
+    todos.append({"id": len(todos) + 1, "title": title, "priority": priority, "done": False})
     save(todos)
-    print(f"Added: {title}")
+    print(f"Added [{priority}]: {title}")
 
 
 def list_todos() -> None:
@@ -32,7 +38,8 @@ def list_todos() -> None:
         return
     for t in todos:
         status = "x" if t["done"] else " "
-        print(f"[{status}] {t['id']}. {t['title']}")
+        priority = t.get("priority", "medium")
+        print(f"[{status}] {t['id']}. {t['title']}  ({priority})")
 
 
 def complete(todo_id: int) -> None:
@@ -57,7 +64,7 @@ def delete(todo_id: int) -> None:
 
 
 USAGE = """Usage:
-  python todo.py add <title>
+  python todo.py add <title> [--priority low|medium|high]
   python todo.py list
   python todo.py done <id>
   python todo.py delete <id>
@@ -71,7 +78,13 @@ if __name__ == "__main__":
 
     cmd, *rest = args
     if cmd == "add" and rest:
-        add(" ".join(rest))
+        priority = "medium"
+        if "--priority" in rest:
+            idx = rest.index("--priority")
+            if idx + 1 < len(rest):
+                priority = rest[idx + 1]
+                rest = rest[:idx] + rest[idx + 2:]
+        add(" ".join(rest), priority)
     elif cmd == "list":
         list_todos()
     elif cmd == "done" and rest:
